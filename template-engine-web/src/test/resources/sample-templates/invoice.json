@@ -1,0 +1,33 @@
+{
+  "order_id": "12344564",
+  "reference": "Konkordia",
+  "customer_to": "Michal Smrž",
+  "customer_address": "R. Novotného",
+  "customer_address_no": "1517",
+  "customer_zip": "27201",
+  "customer_city": "Kladno",
+  "customer_country": "Česká Republika",
+  "customer_vat_no": "CZ7710250713",
+  "btime": "8.3. 2018",
+  "userName": "msmrz",
+  "companyFax": "723 055 108",
+  "companyEmail": "michal.smrz@gmail.com",
+  "company_name": "αβ solutions ag",
+  "items" : [
+    {
+      "amount": 156,
+      "text": "Konkordia",
+      "rate": 125,
+      "subtotal": 7659
+    },
+    {
+      "amount": 1,
+      "text": "Compensation",
+      "rate": 1250,
+      "subtotal": 1250
+    }
+  ],
+  "total": 8909,
+  "vat": 21,
+  "total_with_vat": 12456
+}

@@ -14,11 +14,18 @@ public class MockDocumentTemplateSource {
 
     static final String INVOICE_PATH = "/document-templates/invoice";
     static final String LOREM_PATH = "/document-templates?template=lorem.odt";
+    static final String MESSBERICHT_PATH = "/document-templates/messbericht";
 
     @GetMapping(value = INVOICE_PATH)
     public void downloadInvoiceDocumentTemplate(HttpServletResponse response) throws IOException {
         response.setContentType(DocumentFormat.ODT.mimeContentType);
         IOUtils.copy(new ClassPathResource("/sample-templates/invoice.odt").getInputStream(), response.getOutputStream());
+    }
+
+    @GetMapping(value = MESSBERICHT_PATH)
+    public void downloadMessberichtDocumentTemplate(HttpServletResponse response) throws IOException {
+        response.setContentType(DocumentFormat.DOCX.mimeContentType);
+        IOUtils.copy(new ClassPathResource("/sample-templates/messbericht.docx").getInputStream(), response.getOutputStream());
     }
 
     @GetMapping(value = LOREM_PATH)

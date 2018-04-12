@@ -101,7 +101,9 @@ public class DocumentController {
             final String documentFileName = FileNameUtils.replaceOrAppendFileExtension(documentTemplate.getOriginalFilename(), documentFormat.defaultDocumentExtension);
             response.setHeader(HttpHeaders.CONTENT_DISPOSITION, HttpUtils.createContentDispositionQueryHeader(documentFileName));
 
-            documentService.generateDocument(documentTemplate.getInputStream(), response.getOutputStream(), documentDataMap, documentFormat);
+            DocumentFormat templateDocFormat = DocumentFormat.fromMimeContentType(documentTemplate.getContentType())
+                    .orElseThrow(() -> new IllegalRestArgumentException("Unsupported document template format! Only ODT and DOCX templates are valid."));
+            documentService.generateDocument(documentTemplate.getInputStream(), response.getOutputStream(), templateDocFormat, documentDataMap, documentFormat);
         } else {
             documentService.generateDocument(url, response.getOutputStream(), documentDataMap, documentFormat);
         }

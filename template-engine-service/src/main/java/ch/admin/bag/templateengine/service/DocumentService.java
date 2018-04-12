@@ -47,6 +47,8 @@ import fr.opensagres.xdocreport.document.IXDocReport;
 import fr.opensagres.xdocreport.document.registry.XDocReportRegistry;
 import fr.opensagres.xdocreport.template.IContext;
 import fr.opensagres.xdocreport.template.TemplateEngineKind;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
@@ -68,19 +70,18 @@ public class DocumentService {
 
     public void generateDocument(String templateUrl, OutputStream out, Map<String, Object> documentDataMap, DocumentFormat documentFormat) {
         try {
-            byte[] documentTemplate = restTemplate.getForObject(templateUrl, byte[].class);
+            ResponseEntity<byte[]> documentTemplate = restTemplate.getForEntity(templateUrl, byte[].class);
 
-            if (documentTemplate != null) {
-                generateDocument(new ByteArrayInputStream(documentTemplate), out, documentDataMap, documentFormat);
-            } else {
-                throw new DocumentServiceException(String.format("Document template is empty!. [url=%s]", templateUrl));
-            }
+            final HttpHeaders httpHeaders = documentTemplate.getHeaders();
+            final DocumentFormat templateDocumentFormat = DocumentFormat.fromMimeContentType(httpHeaders.getContentType().toString()).orElse(DocumentFormat.ODT);
+            
+            generateDocument(new ByteArrayInputStream(documentTemplate.getBody()), out, templateDocumentFormat, documentDataMap, documentFormat);
         } catch (RestClientException e) {
             throw new DocumentServiceException(String.format("Unable to read document template. [url=%s]", templateUrl), e);
         }
     }
 
-    public void generateDocument(InputStream in, OutputStream out, Map<String, Object> documentDataMap, DocumentFormat documentFormat) {
+    public void generateDocument(InputStream in, OutputStream out, DocumentFormat templateDocumentFormat, Map<String, Object> documentDataMap, DocumentFormat documentFormat) {
         try {
             IXDocReport doc = XDocReportRegistry.getRegistry().loadReport(in, TemplateEngineKind.Velocity);
 
@@ -88,8 +89,16 @@ public class DocumentService {
             context.putMap(documentDataMap);
 
             if (DocumentFormat.PDF == documentFormat) {
-                Options options = Options.getTo(ConverterTypeTo.PDF).via(
-                        ConverterTypeVia.ODFDOM);
+                final ConverterTypeVia converterTypeVia;
+                if (templateDocumentFormat == DocumentFormat.ODT) {
+                    converterTypeVia = ConverterTypeVia.ODFDOM;
+                } else if (templateDocumentFormat == DocumentFormat.DOCX) {
+                    converterTypeVia = ConverterTypeVia.XWPF;
+                } else {
+                    converterTypeVia = ConverterTypeVia.ODFDOM;
+                }
+
+                Options options = Options.getTo(ConverterTypeTo.PDF).via(converterTypeVia);
                 doc.convert(context, options, out);
             } else {
                 doc.process(context, out);

@@ -58,6 +58,16 @@
             <artifactId>fr.opensagres.xdocreport.converter.odt.odfdom</artifactId>
             <version>${xdocreport.version}</version>
         </dependency>
+        <dependency>
+            <groupId>fr.opensagres.xdocreport</groupId>
+            <artifactId>fr.opensagres.xdocreport.document.docx</artifactId>
+            <version>${xdocreport.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>fr.opensagres.xdocreport</groupId>
+            <artifactId>fr.opensagres.xdocreport.converter.docx.xwpf</artifactId>
+            <version>${xdocreport.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>org.apache.commons</groupId>

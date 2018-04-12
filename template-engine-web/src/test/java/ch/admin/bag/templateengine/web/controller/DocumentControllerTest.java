@@ -1,6 +1,7 @@
 package ch.admin.bag.templateengine.web.controller;
 
 import ch.admin.bag.templateengine.model.DocumentFormat;
+import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -14,8 +15,12 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.ResourceUtils;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -25,6 +30,7 @@ import static ch.admin.bag.templateengine.web.controller.DocumentControllerTest.
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -57,7 +63,45 @@ public class DocumentControllerTest {
         assertEquals(HttpStatus.OK, result.getStatusCode());
 
         final HttpHeaders httpHeaders = result.getHeaders();
-        assertEquals(DocumentFormat.PDF.mimeContentType, httpHeaders.getContentType() != null ? httpHeaders.getContentType().toString() : null);
+        assertEquals(DocumentFormat.PDF.mimeContentType, httpHeaders.getContentType().toString());
+
+        assertNotNull(result.getBody());
+//        assertTrue(result.getBody().length > 20000);
+    }
+
+    @Test
+    public void shouldGenerateDocumentBasedOnDocxUrlTemplateAndReturnFilledPdf() {
+
+        final RestTemplate template = new RestTemplate();
+
+        String jsonData = null;
+        try {
+            File f = ResourceUtils.getFile("classpath:sample-templates/messbericht.json");
+            jsonData = FileUtils.readFileToString(f, Charset.defaultCharset());
+        } catch (IOException e) {
+            fail(e.getMessage());
+        }
+
+        final LinkedMultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
+        map.add(DocumentController.PAR_DOCUMENT_DATA, jsonData);
+
+        final HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+        final String url = DocumentRestRequestBuilder.build((builder) -> builder
+                .host("localhost")
+                .port(port)
+                .templateUrl("http://localhost:" + port + "/document-templates/messbericht")
+                .documentFormat(DocumentFormat.PDF)
+        );
+
+        final HttpEntity<LinkedMultiValueMap<String, Object>> requestEntity = new HttpEntity<>(map, headers);
+        ResponseEntity<byte[]> result = template.exchange(url, HttpMethod.POST, requestEntity, byte[].class);
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+
+        final HttpHeaders httpHeaders = result.getHeaders();
+        assertEquals(DocumentFormat.PDF.mimeContentType, httpHeaders.getContentType().toString());
 
         assertNotNull(result.getBody());
 //        assertTrue(result.getBody().length > 20000);
@@ -88,7 +132,7 @@ public class DocumentControllerTest {
 
         final HttpHeaders httpHeaders = result.getHeaders();
         assertEquals("invoice.pdf", httpHeaders.getContentDisposition().getFilename());
-        assertEquals(DocumentFormat.PDF.mimeContentType, httpHeaders.getContentType() != null ? httpHeaders.getContentType().toString() : null);
+        assertEquals(DocumentFormat.PDF.mimeContentType, httpHeaders.getContentType().toString());
 
         assertNotNull(result.getBody());
 //        assertTrue(result.getBody().length > 20000);
@@ -118,11 +162,12 @@ public class DocumentControllerTest {
 
         final HttpHeaders httpHeaders = result.getHeaders();
         assertEquals("invoice.odt", httpHeaders.getContentDisposition().getFilename());
-        assertEquals(DocumentFormat.ODT.mimeContentType, httpHeaders.getContentType() != null ? httpHeaders.getContentType().toString() : null);
+        assertEquals(DocumentFormat.ODT.mimeContentType, httpHeaders.getContentType().toString());
 
         assertNotNull(result.getBody());
         assertTrue(result.getBody().length > 20000);
     }
+
 
     private static class DocumentRestRequestBuilder {
 

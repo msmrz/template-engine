@@ -1,0 +1,21 @@
+{
+  "contactFullName": "Michal Smrž",
+  "buildingDescription": "",
+  "contactAddress1": "Eichenweg 1",
+  "contactAddress2": "3052 Zollikofen",
+  "personResidence": true,
+  "rnMeanMax": 2777.77777777777777777778,
+  "years": 3,
+  "measurements": [
+    {
+      "dosimeterNo": "4554",
+      "startDate": "03.04.2018",
+      "endDate": "06.04.2018",
+      "floor": "2",
+      "roomType": "Schlafzimmer",
+      "roomSpecification": "",
+      "usage": "Unbestimmt",
+      "radonMeanYearConcentration": "2778"
+    }
+  ]
+}

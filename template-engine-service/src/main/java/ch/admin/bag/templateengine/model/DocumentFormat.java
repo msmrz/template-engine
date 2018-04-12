@@ -45,7 +45,8 @@ import java.util.Optional;
 
 public enum DocumentFormat {
     ODT("application/vnd.oasis.opendocument.text", "odt"),
-    PDF("application/pdf", "pdf");
+    PDF("application/pdf", "pdf"),
+    DOCX("application/vnd.openxmlformats-officedocument.wordprocessingml.document", "docx");
 
     public final String mimeContentType;
     public final String defaultDocumentExtension;

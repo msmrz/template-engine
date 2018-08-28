@@ -44,9 +44,13 @@ import fr.opensagres.xdocreport.converter.ConverterTypeVia;
 import fr.opensagres.xdocreport.converter.Options;
 import fr.opensagres.xdocreport.core.XDocReportException;
 import fr.opensagres.xdocreport.document.IXDocReport;
+import fr.opensagres.xdocreport.document.images.ByteArrayImageProvider;
+import fr.opensagres.xdocreport.document.images.IImageProvider;
 import fr.opensagres.xdocreport.document.registry.XDocReportRegistry;
 import fr.opensagres.xdocreport.template.IContext;
 import fr.opensagres.xdocreport.template.TemplateEngineKind;
+import fr.opensagres.xdocreport.template.formatter.FieldsMetadata;
+import org.apache.commons.codec.binary.Base64;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -58,9 +62,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class DocumentService {
+
+    private static final String QR_CODE_KEY = "qrCode";
+    private static final String QR_CODE_FIELD = "qrcode";
 
     final private RestTemplate restTemplate;
 
@@ -73,9 +81,14 @@ public class DocumentService {
             ResponseEntity<byte[]> documentTemplate = restTemplate.getForEntity(templateUrl, byte[].class);
 
             final HttpHeaders httpHeaders = documentTemplate.getHeaders();
-            final DocumentFormat templateDocumentFormat = DocumentFormat.fromMimeContentType(httpHeaders.getContentType().toString()).orElse(DocumentFormat.ODT);
-            
-            generateDocument(new ByteArrayInputStream(documentTemplate.getBody()), out, templateDocumentFormat, documentDataMap, documentFormat);
+            final DocumentFormat templateDocumentFormat = Optional.ofNullable(httpHeaders.getContentType())
+                    .flatMap(contentType -> DocumentFormat.fromMimeContentType(contentType.toString())).orElse(DocumentFormat.ODT);
+
+            if (documentTemplate.getBody() != null) {
+                generateDocument(new ByteArrayInputStream(documentTemplate.getBody()), out, templateDocumentFormat, documentDataMap, documentFormat);
+            } else {
+                throw new DocumentServiceException(String.format("Unable to read document template. [url=%s]", templateUrl));
+            }
         } catch (RestClientException e) {
             throw new DocumentServiceException(String.format("Unable to read document template. [url=%s]", templateUrl), e);
         }
@@ -87,6 +100,16 @@ public class DocumentService {
 
             IContext context = doc.createContext();
             context.putMap(documentDataMap);
+
+            if (documentDataMap.containsKey(QR_CODE_KEY)) {
+                FieldsMetadata metadata = new FieldsMetadata();
+                metadata.addFieldAsImage(QR_CODE_FIELD);
+                doc.setFieldsMetadata(metadata);
+
+                byte[] qrCodeImage = Base64.decodeBase64((String) documentDataMap.get(QR_CODE_KEY));
+                IImageProvider qrcode = new ByteArrayImageProvider(qrCodeImage);
+                context.put(QR_CODE_FIELD, qrcode);
+            }
 
             if (DocumentFormat.PDF == documentFormat) {
                 final ConverterTypeVia converterTypeVia;

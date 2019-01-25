@@ -2,7 +2,34 @@ function FindProxyForURL(url, host)
  {
   if (dnsDomainIs(host, ".ccncsi.int")) 
       { return "PROXY 162.23.38.6:1998"; }
-  if (shExpMatch(host, "*.slack-msgs.com")) {                
+  if (shExpMatch(host, "*.slack-msgs.com") ) {                
+        return "DIRECT";
+    }
+    if (shExpMatch(host, "*.slack.com") ) {                
+        return "DIRECT";
+    }
+    if (shExpMatch(host, "*.slack-files.com") ) {                
+        return "DIRECT";
+    }
+    if (shExpMatch(host, "*.slack-imgs.com") ) {                
+        return "DIRECT";
+    }
+    if (shExpMatch(host, "*.slack-edge.com") ) {                
+        return "DIRECT";
+    }
+    if (shExpMatch(host, "*.slack-core.com") ) {                
+        return "DIRECT";
+    }
+    if (shExpMatch(host, "*.slack-redir.net") ) {                
+        return "DIRECT";
+    }
+    if (shExpMatch(host, "wss-primary.slack.com") ) {                
+        return "DIRECT";
+    }
+    if (shExpMatch(host, "wss-backup.slack.com") ) {                
+        return "DIRECT";
+    }
+    if (shExpMatch(host, "wss-mobile.slack.com") ) {                
         return "DIRECT";
     }
   if (url.substring(0,19) == "http://lyncdiscover")
